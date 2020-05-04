@@ -5,29 +5,35 @@
 const config = require('../config');
 
 const PromisePool = require('es6-promise-pool');
+const format = require('pg-format');
 const { Pool } = require('pg');
 const pool = new Pool({ ...config.db, max: config.concurrency });
 
 const DAY_IN_MSEC = 86400000;
 
-function* generatePromises({ sensorAmount = 5, daysAgo = 30, interval = 1 } = {}) {
+function* generatePromises({ sensorAmount = 50, daysAgo = 6 * 30, interval = 1, maxInsertions = 100 } = {}) {
   const now = Date.now();
 
   for (let i = 1; i <= sensorAmount; i++) {
     let time = now - daysAgo * DAY_IN_MSEC;
+    let rowsAmount = 0;
+    let rows = [];
     while (time < now) {
       const value = Math.floor((Math.random() * 20) + 10);
-      yield pool.connect()
-        .then((client) => {
-          return client
-            .query('INSERT INTO temperatures(sensor_id, datetime, value) VALUES($1, $2, $3)', [
-              `S${i}`,
-              new Date(time),
-              value,
-            ])
-            .then(() => client.release());
-        });
+      rows.push([`S${i}`, new Date(time), value ]);
+      rowsAmount++;
       time += interval * 1000;
+
+      if (rowsAmount >= maxInsertions || time >= now) {
+        const q = format('INSERT INTO temperatures(sensor_id, datetime, value) VALUES %L', rows);
+        yield pool.connect()
+          .then((client) => {
+            return client.query(q)
+              .then(() => client.release());
+          });
+        rows = [];
+        rowsAmount = 0;
+      }
     }
   }
 }
@@ -57,7 +63,6 @@ shouldFillDatabase()
     if (shouldFill) {
       const promisePool = new PromisePool(generatePromises(), config.concurrency);
       return promisePool.start();
-      // return Promise.all(generateSeeds().map(insertSeed));
     }
   })
   .then(() => pool.end())

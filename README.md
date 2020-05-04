@@ -54,5 +54,9 @@ The project includes 3 parts:
 ## Notes
 
 Populating of `5 sensors * every 10 secs * month` may take a very long time. It was tested on:
+
 - CPU: i7-8665U CPU @ 1.90GHz × 8
-and it took ? minutes.
+
+and it took `22.5 minutes`.
+
+> UDP after multiple insertion (100 rows per INSERT INTO): `35 seconds`.
