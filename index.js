@@ -24,12 +24,21 @@ const queries = {
   ",
 };
 
+const measurementQueries = {
+  sevenDays: `EXPLAIN ANALYZE ${queries.sevenDays}`,
+  firstSensorSevenDays: `EXPLAIN ANALYZE ${queries.firstSensorSevenDays}`,
+  lastValues: `EXPLAIN ANALYZE ${queries.lastValues}`,
+};
+
 const server = http.createServer((req, res) => {
   let q;
   switch (req.url) {
     case '/sevenDays': q = queries.sevenDays; break;
     case '/firstSensorSevenDays': q = queries.firstSensorSevenDays; break;
     case '/lastValues': q = queries.lastValues; break;
+    case '/m/sevenDays': q = measurementQueries.sevenDays; break;
+    case '/m/firstSensorSevenDays': q = measurementQueries.firstSensorSevenDays; break;
+    case '/m/lastValues': q = measurementQueries.lastValues; break;
     default:
       res.end('HTTP/1.1 404 Not Found\r\n\r\n');
       return;
