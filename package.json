@@ -13,6 +13,7 @@
   "author": "Vladimir Glukhikh (gluxix1993@gmail.com)",
   "license": "MIT",
   "dependencies": {
+    "es6-promise-pool": "^2.5.0",
     "pg": "^8.0.3"
   },
   "devDependencies": {

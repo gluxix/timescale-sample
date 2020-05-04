@@ -50,3 +50,9 @@ The project includes 3 parts:
 - `http://localhost:8080/sevenDays`
 - `http://localhost:8080/firstSensorSevenDays`
 - `http://localhost:8080/lastValues`
+
+## Notes
+
+Populating of `5 sensors * every 10 secs * month` may take a very long time. It was tested on:
+- CPU: i7-8665U CPU @ 1.90GHz × 8
+and it took ? minutes.
