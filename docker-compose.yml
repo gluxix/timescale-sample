@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:1.7.0-pg12
+    restart: "on-failure"
+    ports: 
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+
+  api:
+    build:
+      context: .
+    ports: 
+      - "8080:8080"
+    restart: "on-failure"
+    depends_on:
+      - timescaledb

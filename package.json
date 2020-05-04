@@ -1,0 +1,21 @@
+{
+  "name": "timescale",
+  "version": "1.0.0",
+  "description": "Timescale example",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "seed": "node scripts/seed.js",
+    "createdb": "node scripts/createdb.js"
+  },
+  "keywords": [],
+  "author": "Vladimir Glukhikh (gluxix1993@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^8.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
+}
