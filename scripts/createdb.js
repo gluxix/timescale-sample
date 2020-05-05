@@ -9,7 +9,7 @@ const client = new Client(config.db);
 
 const CREATE_TABLE_QUERY = '\
   CREATE TABLE IF NOT EXISTS temperatures (\
-    sensor_id   TEXT              NOT NULL,\
+    sensor_id   VARCHAR(5)        NOT NULL,\
     datetime    TIMESTAMPTZ       NOT NULL,\
     value       DOUBLE PRECISION  NULL\
   )\
