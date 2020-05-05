@@ -11,20 +11,25 @@ const pool = new Pool({ ...config.db, max: config.concurrency });
 
 const DAY_IN_MSEC = 86400000;
 
-function* generatePromises({ sensorAmount = 50, daysAgo = 6 * 30, interval = 1, maxInsertions = 100 } = {}) {
-  const now = Date.now();
-
+function* generatePromises({
+  namePrefix = 'S',
+  sensorAmount = 5,
+  from = Date.now() - 7 * DAY_IN_MSEC,
+  to = Date.now(),
+  interval = 1,
+  maxInsertions = 10000 } = {}
+  ) {
   for (let i = 1; i <= sensorAmount; i++) {
-    let time = now - daysAgo * DAY_IN_MSEC;
+    let time = from;
     let rowsAmount = 0;
     let rows = [];
-    while (time < now) {
+    while (time < to) {
       const value = Math.floor((Math.random() * 20) + 10);
-      rows.push([`S${i}`, new Date(time), value ]);
+      rows.push([`${namePrefix}${i}`, new Date(time), value ]);
       rowsAmount++;
       time += interval * 1000;
 
-      if (rowsAmount >= maxInsertions || time >= now) {
+      if (rowsAmount >= maxInsertions || time >= to) {
         const q = format('INSERT INTO temperatures(sensor_id, datetime, value) VALUES %L', rows);
         yield pool.connect()
           .then((client) => {
@@ -38,32 +43,29 @@ function* generatePromises({ sensorAmount = 50, daysAgo = 6 * 30, interval = 1, 
   }
 }
 
-/**
- * Returns true if the database is empty.
- * @returns {Promise<boolean>}
- */
-function shouldFillDatabase() {
-  return pool.connect()
-    .then((client) => {
-      return client.query('SELECT count(*) FROM temperatures')
-        .then(({ rows }) => Number(rows[0].count) === 0)
-        .then((shouldFill) => {
-          client.release();
-          console.log('shouldFillDatabase:', shouldFill);
-          return shouldFill;
-        });
-    });
-}
-
 console.log('Please wait. It may take a long time...');
 console.time('seed');
 
-shouldFillDatabase()
-  .then((shouldFill) => {
-    if (shouldFill) {
-      const promisePool = new PromisePool(generatePromises(), config.concurrency);
-      return promisePool.start();
-    }
+const now = Date.now();
+
+let promiseIterator = generatePromises({
+  sensorAmount: 10,
+  from: now - 7 * DAY_IN_MSEC,
+  interval: 1,
+});
+let promisePool = new PromisePool(promiseIterator, config.concurrency);
+promisePool.start()
+  .then(() => {
+    // Broken sensor
+    promiseIterator = generatePromises({
+      namePrefix: 'BS',
+      sensorAmount: 1,
+      from: now - 7 * DAY_IN_MSEC,
+      to: now - 3 * DAY_IN_MSEC,
+      interval: 1,
+    });
+    promisePool = new PromisePool(promiseIterator, config.concurrency);
+    return promisePool.start();
   })
   .then(() => pool.end())
   .then(() => console.log('The database has been filled!'))
